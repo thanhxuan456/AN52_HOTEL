@@ -1,0 +1,8 @@
+[functions.translate-text]
+verify_jwt = false
+
+[functions.user-management]
+verify_jwt = true
+
+[functions.payment-notifications]
+verify_jwt = true
