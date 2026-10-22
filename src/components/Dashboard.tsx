@@ -652,7 +652,9 @@ export default function Dashboard({ onBack }: DashboardProps) {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Tabs */}
         <div className="flex gap-1 mb-6 bg-white dark:bg-secondary-800 rounded-xl p-1.5 border border-secondary-200/70 dark:border-secondary-700/80 shadow-sm w-fit overflow-x-auto">
-          {(['overview', 'rewards', 'bookings', 'settings'] as const).map((tabKey) => (
+          {(['overview', 'rewards', 'bookings', 'settings'] as const)
+            .filter((tabKey) => tabKey !== 'rewards' || !user.isAdmin)
+            .map((tabKey) => (
             <button
               key={tabKey}
               onClick={() => setTab(tabKey)}
