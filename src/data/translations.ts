@@ -121,7 +121,16 @@ export type TranslationKey =
   | 'authGoogleBtn'
   | 'authOr'
   | 'dashboard'
-  | 'guestUser';
+  | 'guestUser'
+  | 'stayType'
+  | 'stayTypeNight'
+  | 'stayTypeDay'
+  | 'stayTypeNightDesc'
+  | 'stayTypeDayDesc'
+  | 'pricePerDay'
+  | 'numDays'
+  | 'daysUnit'
+  | 'perDay';
 
 export type TranslationDict = Record<TranslationKey, string>;
 
@@ -248,6 +257,15 @@ export const translations: Record<Language, TranslationDict> = {
     authOr: 'hoặc',
     dashboard: 'Bảng điều khiển',
     guestUser: 'Khách',
+    stayType: 'Loại lưu trú',
+    stayTypeNight: 'Qua đêm',
+    stayTypeDay: 'Theo ngày',
+    stayTypeNightDesc: 'Nhận phòng buổi chiều, trả phòng buổi sáng hôm sau',
+    stayTypeDayDesc: 'Thuê phòng theo giờ trong ngày (tối đa 8 tiếng)',
+    pricePerDay: 'Giá/phòng/ngày',
+    numDays: 'Số ngày',
+    daysUnit: 'ngày',
+    perDay: '/ngày',
   } as TranslationDict,
 
   en: {
@@ -372,6 +390,15 @@ export const translations: Record<Language, TranslationDict> = {
     authOr: 'or',
     dashboard: 'Dashboard',
     guestUser: 'Guest',
+    stayType: 'Stay type',
+    stayTypeNight: 'Overnight',
+    stayTypeDay: 'Day use',
+    stayTypeNightDesc: 'Check in afternoon, check out next morning',
+    stayTypeDayDesc: 'Hourly room rental during the day (max 8 hours)',
+    pricePerDay: 'Price/room/day',
+    numDays: 'Days',
+    daysUnit: 'days',
+    perDay: '/day',
   } as TranslationDict,
 
   kr: {
@@ -496,5 +523,14 @@ export const translations: Record<Language, TranslationDict> = {
     authOr: '또는',
     dashboard: '대시보드',
     guestUser: '게스트',
+    stayType: '숙박 유형',
+    stayTypeNight: '숙박',
+    stayTypeDay: '대실',
+    stayTypeNightDesc: '오후 체크인, 다음 날 오전 체크아웃',
+    stayTypeDayDesc: '주간 시간제 객실 대여 (최대 8시간)',
+    pricePerDay: '객실/일 가격',
+    numDays: '일수',
+    daysUnit: '일',
+    perDay: '/일',
   } as TranslationDict,
 };

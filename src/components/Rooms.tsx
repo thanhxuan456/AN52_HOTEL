@@ -63,9 +63,15 @@ function RoomCard({
           alt={room.name[lang]}
           className="w-full h-56 sm:h-full object-cover group-hover:scale-105 transition-transform duration-700"
         />
-        <div className="absolute top-3 right-3 bg-white/95 dark:bg-secondary-800/95 backdrop-blur px-3 py-1.5 rounded-lg shadow-md">
-          <span className="font-display text-lg font-bold text-primary-600 dark:text-primary-400">{formatPrice(room.price)}</span>
-          <span className="text-xs text-secondary-500 dark:text-secondary-400">{t('perNight')}</span>
+        <div className="absolute top-3 right-3 bg-white/95 dark:bg-secondary-800/95 backdrop-blur px-3 py-1.5 rounded-lg shadow-md flex flex-col items-end">
+          <div>
+            <span className="font-display text-base font-bold text-primary-600 dark:text-primary-400">{formatPrice(room.price)}</span>
+            <span className="text-xs text-secondary-500 dark:text-secondary-400">{t('perNight')}</span>
+          </div>
+          <div className="mt-0.5">
+            <span className="font-display text-sm font-bold text-accent-600 dark:text-accent-400">{formatPrice(room.priceDay)}</span>
+            <span className="text-xs text-secondary-500 dark:text-secondary-400">{t('perDay')}</span>
+          </div>
         </div>
       </div>
 

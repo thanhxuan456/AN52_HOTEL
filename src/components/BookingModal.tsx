@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { X, Calendar, Users, Check, Loader2, BedDouble, CreditCard, QrCode, Copy } from 'lucide-react';
+import { X, Calendar, Users, Check, Loader2, BedDouble, CreditCard, QrCode, Copy, Moon, Sun } from 'lucide-react';
 import { rooms, formatPrice } from '@/data/hotelData';
 import { useApp } from '@/context/AppContext';
 import { useAuth } from '@/context/AuthContext';
@@ -44,6 +44,7 @@ export default function BookingModal({ open, onClose, initialRoomId }: BookingMo
   const [selectedPaymentId, setSelectedPaymentId] = useState<string | null>(null);
   const [qrCode, setQrCode] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
+  const [stayType, setStayType] = useState<'night' | 'day'>('night');
 
   const today = new Date().toISOString().split('T')[0];
 
@@ -93,6 +94,7 @@ export default function BookingModal({ open, onClose, initialRoomId }: BookingMo
         total_price: totalPrice,
         status: 'pending',
         phone,
+        stay_type: stayType,
         payment_method_id: selectedPaymentId,
         payment_method_label: selectedMethod ? (selectedMethod.label[lang] || selectedMethod.label.vi || selectedMethod.label.en) : null,
       });
@@ -106,7 +108,9 @@ export default function BookingModal({ open, onClose, initialRoomId }: BookingMo
   const nights = checkIn && checkOut
     ? Math.max(1, Math.ceil((new Date(checkOut).getTime() - new Date(checkIn).getTime()) / (1000 * 60 * 60 * 24)))
     : 1;
-  const totalPrice = selectedRoom.price * nights;
+  const days = nights;
+  const unitPrice = stayType === 'day' ? selectedRoom.priceDay : selectedRoom.price;
+  const totalPrice = unitPrice * (stayType === 'day' ? days : nights);
 
   const guestOptions: { value: string; key: TranslationKey }[] = [
     { value: '1', key: 'guest1' },
@@ -182,10 +186,39 @@ export default function BookingModal({ open, onClose, initialRoomId }: BookingMo
                     <img src={room.image} alt={room.name[lang]} className="w-16 h-16 rounded-lg object-cover shrink-0" />
                     <div className="min-w-0">
                       <div className="font-semibold text-secondary-900 dark:text-white text-sm truncate">{room.name[lang]}</div>
-                      <div className="text-xs text-primary-600 dark:text-primary-400 font-medium">{formatPrice(room.price)}{t('perNight')}</div>
+                      <div className="text-xs text-primary-600 dark:text-primary-400 font-medium">{formatPrice(room.price)}{t('perNight')} · {formatPrice(room.priceDay)}{t('perDay')}</div>
                     </div>
                   </button>
                 ))}
+              </div>
+            </div>
+
+            {/* Stay Type Selector */}
+            <div className="mb-5">
+              <label className="text-xs font-semibold text-secondary-600 dark:text-secondary-300 uppercase tracking-wide mb-2 block">{t('stayType')}</label>
+              <div className="grid grid-cols-2 gap-3">
+                <button
+                  type="button"
+                  onClick={() => setStayType('night')}
+                  className={`flex items-center gap-3 p-3 rounded-xl border-2 text-left transition-all ${stayType === 'night' ? 'border-primary-500 bg-primary-50 dark:bg-secondary-700' : 'border-secondary-200 dark:border-secondary-600 hover:border-primary-300'}`}
+                >
+                  <Moon className={`w-5 h-5 shrink-0 ${stayType === 'night' ? 'text-primary-600 dark:text-primary-400' : 'text-secondary-400'}`} />
+                  <div className="min-w-0">
+                    <div className="font-semibold text-secondary-900 dark:text-white text-sm">{t('stayTypeNight')}</div>
+                    <div className="text-xs text-secondary-500 dark:text-secondary-400 truncate">{t('stayTypeNightDesc')}</div>
+                  </div>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setStayType('day')}
+                  className={`flex items-center gap-3 p-3 rounded-xl border-2 text-left transition-all ${stayType === 'day' ? 'border-primary-500 bg-primary-50 dark:bg-secondary-700' : 'border-secondary-200 dark:border-secondary-600 hover:border-primary-300'}`}
+                >
+                  <Sun className={`w-5 h-5 shrink-0 ${stayType === 'day' ? 'text-primary-600 dark:text-primary-400' : 'text-secondary-400'}`} />
+                  <div className="min-w-0">
+                    <div className="font-semibold text-secondary-900 dark:text-white text-sm">{t('stayTypeDay')}</div>
+                    <div className="text-xs text-secondary-500 dark:text-secondary-400 truncate">{t('stayTypeDayDesc')}</div>
+                  </div>
+                </button>
               </div>
             </div>
 
@@ -362,12 +395,12 @@ export default function BookingModal({ open, onClose, initialRoomId }: BookingMo
                 </span>
               </div>
               <div className="flex justify-between text-secondary-600 dark:text-secondary-300">
-                <span>{t('numNights')}</span>
-                <span className="font-medium text-secondary-900 dark:text-white">{nights} {t('nightsUnit')}</span>
+                <span>{stayType === 'day' ? t('numDays') : t('numNights')}</span>
+                <span className="font-medium text-secondary-900 dark:text-white">{stayType === 'day' ? days : nights} {stayType === 'day' ? t('daysUnit') : t('nightsUnit')}</span>
               </div>
               <div className="flex justify-between text-secondary-600 dark:text-secondary-300">
-                <span>{t('pricePerNight')}</span>
-                <span className="font-medium text-secondary-900 dark:text-white">{formatPrice(selectedRoom.price)}</span>
+                <span>{stayType === 'day' ? t('pricePerDay') : t('pricePerNight')}</span>
+                <span className="font-medium text-secondary-900 dark:text-white">{formatPrice(unitPrice)}</span>
               </div>
               <div className="border-t border-primary-200 dark:border-secondary-600 pt-2 flex justify-between text-base">
                 <span className="font-semibold text-secondary-900 dark:text-white">{t('total')}</span>

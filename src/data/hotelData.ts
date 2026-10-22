@@ -7,6 +7,7 @@ export type RoomType = {
   name: Record<Language, string>;
   description: Record<Language, string>;
   price: number;
+  priceDay: number;
   size: string;
   capacity: number;
   beds: Record<Language, string>;
@@ -56,6 +57,7 @@ export const rooms: RoomType[] = [
       kr: '모든 편의시설을 갖춘 스탠다드 룸, 1-2인 게스트에게 적합합니다. 미니멀하고 깨끗하며 편안한 공간.',
     },
     price: 850000,
+    priceDay: 500000,
     size: '25 m²',
     capacity: 2,
     beds: {
@@ -83,6 +85,7 @@ export const rooms: RoomType[] = [
       kr: '도시 전망 발코니가 있는 넓은 디럭스 룸. 자연광이 가득한 모던 디자인.',
     },
     price: 1250000,
+    priceDay: 750000,
     size: '35 m²',
     capacity: 3,
     beds: {
@@ -110,6 +113,7 @@ export const rooms: RoomType[] = [
       kr: '별도의 거실, 침실 및 고급 욕실이 있는 프리미엄 스위트. 비즈니스 및 가족에게 이상적입니다.',
     },
     price: 2200000,
+    priceDay: 1300000,
     size: '55 m²',
     capacity: 4,
     beds: {
@@ -137,6 +141,7 @@ export const rooms: RoomType[] = [
       kr: '여러 베드가 있는 넓은 패밀리 룸, 아이가 있는 가족을 위해 설계되었습니다. 모든 편의시설 완비.',
     },
     price: 1650000,
+    priceDay: 980000,
     size: '45 m²',
     capacity: 5,
     beds: {

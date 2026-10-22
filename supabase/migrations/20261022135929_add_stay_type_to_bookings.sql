@@ -1,0 +1,1 @@
+ALTER TABLE bookings ADD COLUMN stay_type text NOT NULL DEFAULT 'night';
