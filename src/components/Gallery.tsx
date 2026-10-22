@@ -2,15 +2,16 @@ import { useState } from 'react';
 import { X, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useReveal } from '@/hooks/useReveal';
 import { useApp } from '@/context/AppContext';
-import { useSiteContent } from '@/hooks/useSiteContent';
 import type { TranslationKey } from '@/data/translations';
 
 export default function Gallery() {
-  const { t, lang } = useApp();
+  const { t, lang, content, sections } = useApp();
   const { ref, visible } = useReveal<HTMLDivElement>();
-  const { galleryImages } = useSiteContent(lang);
+  const galleryImages = content.galleryImages;
   const [activeCategory, setActiveCategory] = useState('all');
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
+
+  if (!sections.hasGallery) return null;
 
   const categories: { id: string; key: TranslationKey }[] = [
     { id: 'all', key: 'galleryAll' },

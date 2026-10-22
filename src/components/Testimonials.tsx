@@ -2,12 +2,13 @@ import { Star, Quote } from 'lucide-react';
 import type { TestimonialType } from '@/data/hotelData';
 import { useReveal } from '@/hooks/useReveal';
 import { useApp } from '@/context/AppContext';
-import { useSiteContent } from '@/hooks/useSiteContent';
 
 export default function Testimonials() {
-  const { t, lang } = useApp();
+  const { t, lang, content, sections } = useApp();
   const { ref, visible } = useReveal<HTMLDivElement>();
-  const { testimonials } = useSiteContent(lang);
+  const testimonials = content.testimonials;
+
+  if (!sections.hasTestimonials) return null;
 
   return (
     <section className="py-20 lg:py-28 bg-white dark:bg-secondary-950">

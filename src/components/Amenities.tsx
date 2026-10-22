@@ -2,7 +2,6 @@ import { Waves, UtensilsCrossed, Flower2, Dumbbell, Briefcase, Sofa, ArrowRight 
 import type { AmenityType } from '@/data/hotelData';
 import { useReveal } from '@/hooks/useReveal';
 import { useApp } from '@/context/AppContext';
-import { useSiteContent } from '@/hooks/useSiteContent';
 
 const iconMap: Record<string, typeof Waves> = {
   Waves,
@@ -14,9 +13,11 @@ const iconMap: Record<string, typeof Waves> = {
 };
 
 export default function Amenities() {
-  const { t, lang } = useApp();
+  const { t, lang, content, sections } = useApp();
   const { ref, visible } = useReveal<HTMLDivElement>();
-  const { amenities } = useSiteContent(lang);
+  const amenities = content.amenities;
+
+  if (!sections.hasAmenities) return null;
 
   return (
     <section id="amenities" className="py-20 lg:py-28 bg-secondary-800 dark:bg-secondary-950 bg-grain">

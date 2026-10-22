@@ -15,7 +15,7 @@ type NavbarProps = {
 };
 
 export default function Navbar({ onBookClick, onAuthClick, onDashboardClick }: NavbarProps) {
-  const { t } = useApp();
+  const { t, sections } = useApp();
   const { user } = useAuth();
   const [scrolled, setScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
@@ -31,8 +31,8 @@ export default function Navbar({ onBookClick, onAuthClick, onDashboardClick }: N
     { label: 'navHome', href: '#home' },
     { label: 'navAbout', href: '#about' },
     { label: 'navRooms', href: '#rooms' },
-    { label: 'navAmenities', href: '#amenities' },
-    { label: 'navGallery', href: '#gallery' },
+    ...(sections.hasAmenities ? [{ label: 'navAmenities' as TranslationKey, href: '#amenities' }] : []),
+    ...(sections.hasGallery ? [{ label: 'navGallery' as TranslationKey, href: '#gallery' }] : []),
     { label: 'navContact', href: '#contact' },
   ];
 

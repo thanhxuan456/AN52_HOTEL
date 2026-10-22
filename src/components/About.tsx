@@ -1,13 +1,12 @@
 import { Wifi, Car, ShieldCheck, Clock } from 'lucide-react';
 import { useReveal } from '@/hooks/useReveal';
 import { useApp } from '@/context/AppContext';
-import { useSiteContent } from '@/hooks/useSiteContent';
 import type { TranslationKey } from '@/data/translations';
 
 export default function About() {
-  const { t, lang } = useApp();
+  const { t, lang, content, sections } = useApp();
   const { ref, visible } = useReveal<HTMLDivElement>();
-  const { stats } = useSiteContent(lang);
+  const stats = content.stats;
 
   const highlights: { icon: typeof Wifi; key: TranslationKey }[] = [
     { icon: Wifi, key: 'wifiFree' },
@@ -74,16 +73,18 @@ export default function About() {
               </div>
             </div>
 
-            <div className="absolute -bottom-6 -left-4 sm:-left-6 bg-white dark:bg-secondary-800 rounded-2xl shadow-2xl p-5 border border-primary-100 dark:border-secondary-700">
-              <div className="grid grid-cols-2 gap-x-6 gap-y-3">
-                {stats.map((stat) => (
-                  <div key={stat.value} className="text-center">
-                    <div className="font-display text-2xl sm:text-3xl font-bold text-primary-600 dark:text-primary-400">{stat.value}</div>
-                    <div className="text-xs text-secondary-500 dark:text-secondary-400 mt-0.5">{stat.label[lang]}</div>
-                  </div>
-                ))}
+            {sections.hasStats && (
+              <div className="absolute -bottom-6 -left-4 sm:-left-6 bg-white dark:bg-secondary-800 rounded-2xl shadow-2xl p-5 border border-primary-100 dark:border-secondary-700">
+                <div className="grid grid-cols-2 gap-x-6 gap-y-3">
+                  {stats.map((stat) => (
+                    <div key={stat.value} className="text-center">
+                      <div className="font-display text-2xl sm:text-3xl font-bold text-primary-600 dark:text-primary-400">{stat.value}</div>
+                      <div className="text-xs text-secondary-500 dark:text-secondary-400 mt-0.5">{stat.label[lang]}</div>
+                    </div>
+                  ))}
+                </div>
               </div>
-            </div>
+            )}
           </div>
         </div>
       </div>

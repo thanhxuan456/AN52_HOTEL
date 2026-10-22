@@ -3,16 +3,15 @@ import { formatPrice } from '@/data/hotelData';
 import type { RoomType } from '@/data/hotelData';
 import { useReveal } from '@/hooks/useReveal';
 import { useApp } from '@/context/AppContext';
-import { useSiteContent } from '@/hooks/useSiteContent';
 
 type RoomsProps = {
   onBookClick: (roomId?: string) => void;
 };
 
 export default function Rooms({ onBookClick }: RoomsProps) {
-  const { t, lang } = useApp();
+  const { t, lang, content } = useApp();
   const { ref, visible } = useReveal<HTMLDivElement>();
-  const { rooms } = useSiteContent(lang);
+  const rooms = content.rooms;
 
   return (
     <section id="rooms" className="py-20 lg:py-28 bg-white dark:bg-secondary-950">

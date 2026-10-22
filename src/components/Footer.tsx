@@ -12,7 +12,7 @@ type FooterProps = {
 };
 
 export default function Footer({ onBookClick }: FooterProps) {
-  const { t, settings } = useApp();
+  const { t, settings, sections } = useApp();
   const { ref, visible } = useReveal<HTMLDivElement>();
   const [email, setEmail] = useState('');
   const [subscribed, setSubscribed] = useState(false);
@@ -29,8 +29,8 @@ export default function Footer({ onBookClick }: FooterProps) {
   const quickLinks: { key: TranslationKey; href: string }[] = [
     { key: 'about', href: '#about' },
     { key: 'rooms', href: '#rooms' },
-    { key: 'amenities', href: '#amenities' },
-    { key: 'gallery', href: '#gallery' },
+    ...(sections.hasAmenities ? [{ key: 'amenities' as TranslationKey, href: '#amenities' }] : []),
+    ...(sections.hasGallery ? [{ key: 'gallery' as TranslationKey, href: '#gallery' }] : []),
   ];
 
   const socials = [

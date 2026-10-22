@@ -2,6 +2,15 @@ import { createContext, useContext, useEffect, useState, type ReactNode } from '
 import type { Language, ThemeMode } from '@/data/hotelData';
 import { translations, type TranslationKey } from '@/data/translations';
 import { useSiteSettings, type SiteSettings } from '@/hooks/useSiteSettings';
+import { useSiteContent, type SiteContentData } from '@/hooks/useSiteContent';
+
+type SectionVisibility = {
+  hasAmenities: boolean;
+  hasGallery: boolean;
+  hasTestimonials: boolean;
+  hasRooms: boolean;
+  hasStats: boolean;
+};
 
 type AppContextValue = {
   lang: Language;
@@ -12,6 +21,8 @@ type AppContextValue = {
   isDark: boolean;
   settings: SiteSettings;
   reloadSettings: () => void;
+  content: SiteContentData;
+  sections: SectionVisibility;
 };
 
 const AppContext = createContext<AppContextValue | null>(null);
@@ -51,6 +62,16 @@ export function AppProvider({ children }: { children: ReactNode }) {
     root.style.setProperty('--color-accent-500', settings.accentColor);
   }, [settings.primaryColor, settings.accentColor]);
 
+  const content = useSiteContent(lang);
+
+  const sections: SectionVisibility = {
+    hasAmenities: content.amenities.length > 0,
+    hasGallery: content.galleryImages.length > 0,
+    hasTestimonials: content.testimonials.length > 0,
+    hasRooms: content.rooms.length > 0,
+    hasStats: content.stats.length > 0,
+  };
+
   const t = (key: TranslationKey): string => translations[lang][key] ?? key;
 
   const toggleTheme = () => setTheme((prev) => (prev === 'light' ? 'dark' : 'light'));
@@ -64,6 +85,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
     isDark: theme === 'dark',
     settings,
     reloadSettings,
+    content,
+    sections,
   };
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;
