@@ -78,6 +78,7 @@ import { useApp } from '@/context/AppContext';
 import { useAuth } from '@/context/AuthContext';
 import { generateQRDataURL, getBankName, vietnameseBanks } from '@/lib/vietqr';
 import * as XLSX from 'xlsx';
+import ConfirmModal from '@/components/ConfirmModal';
 
 type BookingRow = {
   id: string;
@@ -216,6 +217,8 @@ export default function AdminPanel({ onBack }: AdminPanelProps) {
   const [editingInvoice, setEditingInvoice] = useState<CustomInvoiceRow | null>(null);
   const [viewingInvoice, setViewingInvoice] = useState<CustomInvoiceRow | null>(null);
   const [emailNotifStatus, setEmailNotifStatus] = useState<{ bookingId: string; status: 'sending' | 'sent' | 'error' } | null>(null);
+  const [confirmState, setConfirmState] = useState<{ title: string; message: string; onConfirm: () => Promise<void> | void; variant?: 'danger' | 'warning' } | null>(null);
+  const [confirmLoading, setConfirmLoading] = useState(false);
 
   const [searchQuery, setSearchQuery] = useState('');
   const [bookingFilter, setBookingFilter] = useState<string>('all');
@@ -386,6 +389,31 @@ export default function AdminPanel({ onBack }: AdminPanelProps) {
     const { error } = await supabase.from('site_content').delete().eq('id', id);
     if (error) { console.error(error); return; }
     setContent((prev) => prev.filter((c) => c.id !== id));
+  };
+
+  const deleteAllSampleContent = async () => {
+    const { error } = await supabase.from('site_content').delete().in('category', ['room', 'amenity', 'testimonial', 'gallery', 'stat']);
+    if (error) { console.error(error); return; }
+    setContent((prev) => prev.filter((c) => !['room', 'amenity', 'testimonial', 'gallery', 'stat'].includes(c.category)));
+  };
+
+  const requestDeleteContent = (id: string) => {
+    setConfirmState({
+      title: tr.confirmDeleteTitle,
+      message: tr.confirmDeleteMsg,
+      onConfirm: () => deleteContent(id),
+    });
+  };
+
+  const requestDeleteAllSample = () => {
+    const sampleCount = content.filter((c) => ['room', 'amenity', 'testimonial', 'gallery', 'stat'].includes(c.category)).length;
+    setConfirmState({
+      title: tr.deleteAllSampleTitle,
+      message: tr.deleteAllSampleMsg,
+      variant: 'warning',
+      onConfirm: () => deleteAllSampleContent(),
+    });
+    void sampleCount;
   };
 
   const moveContent = async (row: ContentRow, dir: 'up' | 'down') => {
@@ -669,7 +697,7 @@ export default function AdminPanel({ onBack }: AdminPanelProps) {
 
         {/* Content Tab */}
         {tab === 'content' && (
-          <ContentManager content={content} onReload={loadContent} tr={tr} lang={lang} onTogglePublished={toggleContentPublished} onDelete={deleteContent} onMove={moveContent} />
+          <ContentManager content={content} onReload={loadContent} tr={tr} lang={lang} onTogglePublished={toggleContentPublished} onDelete={requestDeleteContent} onMove={moveContent} onDeleteAllSample={requestDeleteAllSample} />
         )}
 
         {/* Payments Tab */}
@@ -1048,6 +1076,24 @@ function SettingsManager({ tr, lang }: { tr: typeof adminTr.vi; lang: Language }
           </button>
         </div>
       </div>
+
+      <ConfirmModal
+        open={confirmState !== null}
+        title={confirmState?.title ?? ''}
+        message={confirmState?.message ?? ''}
+        confirmLabel={tr.delete}
+        cancelLabel={tr.cancel}
+        variant={confirmState?.variant ?? 'danger'}
+        loading={confirmLoading}
+        onConfirm={async () => {
+          if (!confirmState) return;
+          setConfirmLoading(true);
+          await confirmState.onConfirm();
+          setConfirmLoading(false);
+          setConfirmState(null);
+        }}
+        onCancel={() => setConfirmState(null)}
+      />
     </div>
   );
 }
@@ -1073,10 +1119,15 @@ function InvoiceManager({ invoices, onReload, tr, lang, formatDate, showEditor, 
   viewingInvoice: CustomInvoiceRow | null;
   setViewingInvoice: (v: CustomInvoiceRow | null) => void;
 }) {
+  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
+  const [deleting, setDeleting] = useState(false);
+
   const handleDelete = async (id: string) => {
-    if (!confirm(tr.invConfirmDelete)) return;
+    setDeleting(true);
     const { error } = await supabase.from('custom_invoices').delete().eq('id', id);
+    setDeleting(false);
     if (error) { console.error(error); return; }
+    setConfirmDeleteId(null);
     onReload();
   };
 
@@ -1187,7 +1238,7 @@ function InvoiceManager({ invoices, onReload, tr, lang, formatDate, showEditor, 
                   <button onClick={() => setEditingInvoice(inv)} className="flex items-center gap-1 px-3 py-1 rounded-lg text-xs font-semibold bg-primary-100 text-primary-600 hover:bg-primary-200 dark:bg-primary-900/30 dark:text-primary-400 transition-all">
                     <Edit3 className="w-3.5 h-3.5" /> {tr.invEdit}
                   </button>
-                  <button onClick={() => handleDelete(inv.id)} className="flex items-center gap-1 px-3 py-1 rounded-lg text-xs font-semibold bg-error-100 text-error-600 hover:bg-error-200 dark:bg-error-900/30 dark:text-error-400 transition-all">
+                  <button onClick={() => setConfirmDeleteId(inv.id)} className="flex items-center gap-1 px-3 py-1 rounded-lg text-xs font-semibold bg-error-100 text-error-600 hover:bg-error-200 dark:bg-error-900/30 dark:text-error-400 transition-all">
                     <Trash2 className="w-3.5 h-3.5" /> {tr.invDelete}
                   </button>
                 </div>
@@ -1196,6 +1247,16 @@ function InvoiceManager({ invoices, onReload, tr, lang, formatDate, showEditor, 
           </div>
         </div>
       )}
+      <ConfirmModal
+        open={confirmDeleteId !== null}
+        title={tr.confirmDeleteTitle}
+        message={tr.invConfirmDelete}
+        confirmLabel={tr.invDelete}
+        cancelLabel={tr.cancel}
+        loading={deleting}
+        onConfirm={() => confirmDeleteId && handleDelete(confirmDeleteId)}
+        onCancel={() => setConfirmDeleteId(null)}
+      />
     </div>
   );
 }
@@ -2204,6 +2265,8 @@ function PaymentMethodManager({ methods, onReload, tr, lang, editingMethod, setE
   setCreatingMethod: (v: boolean) => void;
 }) {
   const sorted = [...methods].sort((a, b) => a.sort_order - b.sort_order);
+  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
+  const [deleting, setDeleting] = useState(false);
 
   const togglePublished = async (id: string, current: boolean) => {
     await supabase.from('payment_methods').update({ is_published: !current }).eq('id', id);
@@ -2211,7 +2274,10 @@ function PaymentMethodManager({ methods, onReload, tr, lang, editingMethod, setE
   };
 
   const deleteMethod = async (id: string) => {
+    setDeleting(true);
     await supabase.from('payment_methods').delete().eq('id', id);
+    setDeleting(false);
+    setConfirmDeleteId(null);
     onReload();
   };
 
@@ -2292,7 +2358,7 @@ function PaymentMethodManager({ methods, onReload, tr, lang, editingMethod, setE
                     <button onClick={() => setEditingMethod(method)} className="p-1.5 rounded-lg text-primary-500 hover:bg-primary-50 dark:hover:bg-secondary-700 transition-colors">
                       <Pencil className="w-4 h-4" />
                     </button>
-                    <button onClick={() => deleteMethod(method.id)} className="p-1.5 rounded-lg text-error-500 hover:bg-error-50 dark:hover:bg-secondary-700 transition-colors">
+                    <button onClick={() => setConfirmDeleteId(method.id)} className="p-1.5 rounded-lg text-error-500 hover:bg-error-50 dark:hover:bg-secondary-700 transition-colors">
                       <Trash className="w-4 h-4" />
                     </button>
                   </div>
@@ -2308,6 +2374,16 @@ function PaymentMethodManager({ methods, onReload, tr, lang, editingMethod, setE
           )}
         </>
       )}
+      <ConfirmModal
+        open={confirmDeleteId !== null}
+        title={tr.confirmDeleteTitle}
+        message={tr.confirmDeletePaymentMethod}
+        confirmLabel={tr.delete}
+        cancelLabel={tr.cancel}
+        loading={deleting}
+        onConfirm={() => confirmDeleteId && deleteMethod(confirmDeleteId)}
+        onCancel={() => setConfirmDeleteId(null)}
+      />
     </div>
   );
 }
@@ -2469,6 +2545,7 @@ type ContentManagerProps = {
   onTogglePublished: (id: string, current: boolean) => void;
   onDelete: (id: string) => void;
   onMove: (row: ContentRow, dir: 'up' | 'down') => void;
+  onDeleteAllSample: () => void;
 };
 
 const contentCategories = [
@@ -2482,7 +2559,7 @@ const contentCategories = [
   { key: 'general', label_vi: 'Chung', label_en: 'General', label_kr: '일반' },
 ];
 
-function ContentManager({ content, onReload, tr, lang, onTogglePublished, onDelete, onMove }: ContentManagerProps) {
+function ContentManager({ content, onReload, tr, lang, onTogglePublished, onDelete, onMove, onDeleteAllSample }: ContentManagerProps) {
   const [activeCat, setActiveCat] = useState('room');
   const [editing, setEditing] = useState<ContentRow | null>(null);
   const [creating, setCreating] = useState(false);
@@ -2592,6 +2669,15 @@ function ContentManager({ content, onReload, tr, lang, onTogglePublished, onDele
           >
             <Plus className="w-4 h-4" /> {tr.addNew}
           </button>
+
+          {content.filter((c) => ['room', 'amenity', 'testimonial', 'gallery', 'stat'].includes(c.category)).length > 0 && (
+            <button
+              onClick={onDeleteAllSample}
+              className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl border border-error-200 dark:border-error-800/50 text-error-600 dark:text-error-400 hover:bg-error-50 dark:hover:bg-error-900/20 transition-all text-sm font-semibold"
+            >
+              <Trash2 className="w-4 h-4" /> {tr.deleteAllSample}
+            </button>
+          )}
 
           {catContent.map((row, idx) => (
             <div key={row.id} className="bg-white dark:bg-secondary-800 rounded-2xl border border-secondary-200/70 dark:border-secondary-700/80 shadow-sm overflow-hidden">
@@ -3634,7 +3720,7 @@ function ContentPreviewCard({ row, tr, lang, idx, total, onMove, onTogglePublish
         <button onClick={onEdit} className="p-1.5 rounded-lg text-primary-500 hover:bg-primary-100 dark:hover:bg-primary-900/30 transition-colors">
           <Edit3 className="w-4 h-4" />
         </button>
-        <button onClick={() => { if (confirm(tr.confirmDelete)) onDelete(row.id); }} className="p-1.5 rounded-lg text-error-500 hover:bg-error-100 dark:hover:bg-error-900/30 transition-colors">
+        <button onClick={() => onDelete(row.id)} className="p-1.5 rounded-lg text-error-500 hover:bg-error-100 dark:hover:bg-error-900/30 transition-colors">
           <Trash2 className="w-4 h-4" />
         </button>
       </div>
@@ -3721,6 +3807,13 @@ const adminTr: Record<Language, Record<string, string>> = {
     keyRequired: 'Vui lòng nhập khóa nội dung',
     invalidJson: 'JSON không hợp lệ',
     confirmDelete: 'Bạn có chắc muốn xóa nội dung này?',
+    confirmDeleteTitle: 'Xác nhận xóa',
+    confirmDeleteMsg: 'Nội dung này sẽ bị xóa vĩnh viễn. Hành động không thể hoàn tác.',
+    confirmDeletePaymentMethod: 'Phương thức thanh toán này sẽ bị xóa. Khách sẽ không thấy nó khi đặt phòng.',
+    delete: 'Xóa',
+    deleteAllSample: 'Xóa toàn bộ nội dung mẫu',
+    deleteAllSampleTitle: 'Xóa toàn bộ nội dung mẫu',
+    deleteAllSampleMsg: 'Tất cả dữ liệu mẫu (phòng, tiện nghi, đánh giá, thư viện ảnh, thống kê) sẽ bị xóa vĩnh viễn. Bạn có thể nạp lại bất cứ lúc nào.',
     seedAll: 'Nạp toàn bộ nội dung mẫu',
     seedAllHint: 'Chưa có nội dung. Bạn có thể nạp toàn bộ dữ liệu mẫu (phòng, tiện nghi, đánh giá, thư viện, thống kê) từ hệ thống.',
     markPaid: 'Đã thu',
@@ -3939,6 +4032,13 @@ const adminTr: Record<Language, Record<string, string>> = {
     keyRequired: 'Please enter a content key',
     invalidJson: 'Invalid JSON format',
     confirmDelete: 'Are you sure you want to delete this content?',
+    confirmDeleteTitle: 'Confirm Delete',
+    confirmDeleteMsg: 'This content will be permanently deleted. This action cannot be undone.',
+    confirmDeletePaymentMethod: 'This payment method will be deleted. Guests will no longer see it at checkout.',
+    delete: 'Delete',
+    deleteAllSample: 'Delete All Sample Content',
+    deleteAllSampleTitle: 'Delete All Sample Content',
+    deleteAllSampleMsg: 'All sample data (rooms, amenities, testimonials, gallery, stats) will be permanently deleted. You can re-seed at any time.',
     seedAll: 'Seed All Sample Content',
     seedAllHint: 'No content yet. You can seed all sample data (rooms, amenities, testimonials, gallery, stats) from the system.',
     markPaid: 'Mark Paid',
@@ -4157,6 +4257,13 @@ const adminTr: Record<Language, Record<string, string>> = {
     keyRequired: '콘텐츠 키를 입력하세요',
     invalidJson: '잘못된 JSON 형식',
     confirmDelete: '이 콘텐츠를 삭제하시겠습니까?',
+    confirmDeleteTitle: '삭제 확인',
+    confirmDeleteMsg: '이 콘텐츠는 영구적으로 삭제됩니다. 이 작업은 되돌릴 수 없습니다.',
+    confirmDeletePaymentMethod: '이 결제 수단이 삭제됩니다. 예약 시 더 이상 표시되지 않습니다.',
+    delete: '삭제',
+    deleteAllSample: '전체 샘플 콘텐츠 삭제',
+    deleteAllSampleTitle: '전체 샘플 콘텐츠 삭제',
+    deleteAllSampleMsg: '모든 샘플 데이터(객실, 편의시설, 리뷰, 갤러리, 통계)가 영구 삭제됩니다. 언제든 다시 불러올 수 있습니다.',
     seedAll: '전체 샘플 콘텐츠 불러오기',
     seedAllHint: '콘텐츠가 없습니다. 시스템에서 모든 샘플 데이터(객실, 편의시설, 리뷰, 갤러리, 통계)를 불러올 수 있습니다.',
     markPaid: '결제 완료',
