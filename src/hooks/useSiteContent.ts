@@ -182,12 +182,16 @@ export function useSiteContent(lang: Language): SiteContentData {
   const cmsGallery = byCat('gallery');
   const cmsStats = byCat('stat');
 
-  /* Use CMS content if any published rows exist, otherwise fall back to static data */
-  const rooms = cmsRooms.some((r) => r.is_published) ? rowsToRooms(cmsRooms) : staticRooms;
-  const amenities = cmsAmenities.some((r) => r.is_published) ? rowsToAmenities(cmsAmenities) : staticAmenities;
-  const testimonials = cmsTestimonials.some((r) => r.is_published) ? rowsToTestimonials(cmsTestimonials) : staticTestimonials;
-  const galleryImages = cmsGallery.some((r) => r.is_published) ? rowsToGallery(cmsGallery) : staticGallery;
-  const stats = cmsStats.some((r) => r.is_published) ? rowsToStats(cmsStats) : staticStats;
+  /* Use CMS content from the database. Fall back to static data only when the
+     table is completely empty (fresh install with no seeding yet). Once any
+     rows exist, the database is authoritative — deleting sample content will
+     result in empty sections, not a re-appearance of static data. */
+  const hasAnyRows = rows.length > 0;
+  const rooms = !hasAnyRows ? staticRooms : rowsToRooms(cmsRooms);
+  const amenities = !hasAnyRows ? staticAmenities : rowsToAmenities(cmsAmenities);
+  const testimonials = !hasAnyRows ? staticTestimonials : rowsToTestimonials(cmsTestimonials);
+  const galleryImages = !hasAnyRows ? staticGallery : rowsToGallery(cmsGallery);
+  const stats = !hasAnyRows ? staticStats : rowsToStats(cmsStats);
 
   /* For texts: build a map with the current language, falling back to vi */
   const textRows = byCat('section_text');
