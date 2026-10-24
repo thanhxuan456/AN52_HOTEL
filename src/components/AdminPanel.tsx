@@ -848,6 +848,24 @@ export default function AdminPanel({ onBack }: AdminPanelProps) {
           formatDate={formatDate}
         />
       )}
+
+      <ConfirmModal
+        open={confirmState !== null}
+        title={confirmState?.title ?? ''}
+        message={confirmState?.message ?? ''}
+        confirmLabel={tr.delete}
+        cancelLabel={tr.cancel}
+        variant={confirmState?.variant ?? 'danger'}
+        loading={confirmLoading}
+        onConfirm={async () => {
+          if (!confirmState) return;
+          setConfirmLoading(true);
+          await confirmState.onConfirm();
+          setConfirmLoading(false);
+          setConfirmState(null);
+        }}
+        onCancel={() => setConfirmState(null)}
+      />
     </div>
   );
 }
@@ -1076,24 +1094,6 @@ function SettingsManager({ tr, lang }: { tr: typeof adminTr.vi; lang: Language }
           </button>
         </div>
       </div>
-
-      <ConfirmModal
-        open={confirmState !== null}
-        title={confirmState?.title ?? ''}
-        message={confirmState?.message ?? ''}
-        confirmLabel={tr.delete}
-        cancelLabel={tr.cancel}
-        variant={confirmState?.variant ?? 'danger'}
-        loading={confirmLoading}
-        onConfirm={async () => {
-          if (!confirmState) return;
-          setConfirmLoading(true);
-          await confirmState.onConfirm();
-          setConfirmLoading(false);
-          setConfirmState(null);
-        }}
-        onCancel={() => setConfirmState(null)}
-      />
     </div>
   );
 }
